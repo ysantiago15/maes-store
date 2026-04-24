@@ -3039,7 +3039,7 @@
         }
 
         // ✅ Bloquear usuarios que no hayan verificado su correo
-        if (!user.emailVerified) {
+        if (!user.emailVerified && !isRegistering) {
           await signOut(auth);
           // muestra mensaje de error en el login
           return;
