@@ -3409,7 +3409,17 @@
       catch { toast('Error', 'err') }
       finally { const b = document.getElementById('saveBtn'); if (b) { b.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios'; b.disabled = false } }
     }
-    window.aDel = async function (id, name) { if (!confirm(`¿Eliminar "${name}"?`)) return; try { await deleteDoc(doc(db, 'products', id)); products = products.filter(p => p.id !== id); toast('Eliminado'); aTab('prod') } catch { toast('Error', 'err') } }
+   window.aDel = async function (id, name) {
+  if (!confirm(`¿Eliminar "${name}"?`)) return;
+  try {
+    await deleteDoc(doc(db, 'products', id));
+    products = products.filter(p => p.id !== id);
+    aTab('prod');
+    toast('Eliminado');
+  } catch {
+    toast('Error', 'err');
+  }
+}
     async function saveCats() { await setDoc(doc(db, 'settings', 'categories'), { list: categories.filter(x => x !== 'Todos') }) }
     window.aCatAdd = async function () { const v = document.getElementById('newCat').value.trim(); if (!v || categories.includes(v)) return alert('Inválida o ya existe'); categories.push(v); await saveCats(); toast(`"${v}" agregada`); aTab('cat') }
     window.aCatRm = async function (name) { if (!confirm(`¿Eliminar "${name}"?`)) return; categories = categories.filter(c => c !== name); await saveCats(); toast(`"${name}" eliminada`); aTab('cat') }
