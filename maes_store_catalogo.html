@@ -2740,6 +2740,7 @@
     // const ADMIN_EMAIL = 'admin@maesstore.com', ADMIN_PASS = 'maes2025', MIN_MAYORISTA = 200000;
     const MIN_MAYORISTA = 200000;
     let adminLogged = false, cart = [], mayCart = [], activeCat = 'Todos', selProd = null, editId = null;
+    let isRegistering = false; 
     let imgFile = null, bannerFile = null, logoFile = null;
     let products = [], categories = ['Todos'], settings = {};
     let curUser = null, curData = null, pedidos = [];
@@ -2863,6 +2864,7 @@
       btn.disabled = true;
 
       try {
+        isRegistering = true;
         // 1. Crear cuenta en Firebase Auth
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
@@ -2894,6 +2896,7 @@
           console.error(e);
         }
       } finally {
+        isRegistering = false;
         btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Crear cuenta';
         btn.disabled = false;
       }
