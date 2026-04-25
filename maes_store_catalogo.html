@@ -2365,7 +2365,8 @@
     <nav>
       <div class="nav-inner">
         <div class="logo-svg" onclick="goTo('hero')">
-          <div class="logo-mark"><span>M</span></div>
+          <img id="navLogoImg" class="logo-img-el" src="" alt="Logo" style="display:none">
+          <div class="logo-mark" id="navLogoMark"><span>M</span></div>
           <div>
             <div class="logo-name">Maes Store</div>
             <div class="logo-tagline">Valledupar · Colombia</div>
@@ -2390,7 +2391,9 @@
       <div class="hero-bg" id="heroBgImg"></div>
       <div class="hero-content">
         <div class="hero-logo">
-          <div class="hmark"><span>M</span></div>
+          <img id="heroLogoImg" src="" alt="Logo"
+            style="display:none;width:64px;height:64px;border-radius:16px;object-fit:contain;background:rgba(255,255,255,.25);padding:6px">
+          <div class="hmark" id="heroLogoMark"><span>M</span></div>
           <div class="htxt">
             <div class="hn">Maes Store</div>
             <div class="hs"><i class="fa-solid fa-location-dot"></i> Valledupar, Colombia</div>
@@ -2710,8 +2713,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, setDoc, getDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    // import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-    // import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
     import {
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
       signOut, onAuthStateChanged, sendEmailVerification
@@ -2729,18 +2731,11 @@
 
     const app = initializeApp(firebaseConfig);
 
-    // const app = initializeApp({ apiKey: "AIzaSyChJg8Ipm_DQT17ZDB9YsPVnDJN2Zq0F1E", authDomain: "proyecto-maesstore.firebaseapp.com", projectId: "proyecto-maesstore", storageBucket: "proyecto-maesstore.firebasestorage.app", messagingSenderId: "160139226352", appId: "1:160139226352:web:cf222a93c5bcd1c0d42635" });
-    // const db = getFirestore(app), storage = getStorage(app), auth = getAuth(app);
     const db = getFirestore(app), auth = getAuth(app);
 
-
-    // import { initializeApp } from "firebase/app";
-
-
-    // const ADMIN_EMAIL = 'admin@maesstore.com', ADMIN_PASS = 'maes2025', MIN_MAYORISTA = 200000;
     const MIN_MAYORISTA = 200000;
     let adminLogged = false, cart = [], mayCart = [], activeCat = 'Todos', selProd = null, editId = null;
-    let isRegistering = false; 
+    let isRegistering = false;
     let imgFile = null, bannerFile = null, logoFile = null;
     let products = [], categories = ['Todos'], settings = {};
     let curUser = null, curData = null, pedidos = [];
@@ -2770,7 +2765,7 @@
     const fmt = n => '$' + Number(n).toLocaleString('es-CO') + ' COP';
     const catIcon = c => ({ 'Rostro': 'fa-solid fa-face-smile-wink', 'Ojos': 'fa-solid fa-eye', 'Labios': 'fa-solid fa-kiss-wink-heart', 'Accesorios': 'fa-solid fa-gem', 'Cuidado': 'fa-solid fa-leaf' }[c] || 'fa-solid fa-spa');
     const placeholder = (p, h = 180) => `<div class="placeholder" style="height:${h}px"><i class="${catIcon(p.cat)}"></i><span>${p.cat || 'Producto'}</span></div>`;
-    
+
     const thumb = (p, h = 200) => p.img ? `<img src="${p.img}" alt="${p.name}" style="width:100%;height:${h}px;object-fit:cover">` : `<div class="placeholder" style="height:${h}px"><i class="${catIcon(p.cat)}" style="font-size:2.8rem;color:rgba(255,255,255,.7)"></i><span style="font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.5px">${p.cat || 'Producto'}</span></div>`;
     const thumbSm = p => p.img ? `<img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : `<i class="${catIcon(p.cat)}" style="font-size:1.2rem;color:var(--lila)"></i>`;
     window.goTo = goTo;
@@ -2788,7 +2783,7 @@
       t.style.opacity = '1'; clearTimeout(t._t); t._t = setTimeout(() => t.style.opacity = '0', 3000);
     }
 
-    
+
 
     // ✅ NUEVA FUNCIÓN (usa Cloudinary, gratis sin tarjeta)
     const CLOUDINARY_CLOUD = 'durtdfcdz'; // ← cambia esto
@@ -2832,9 +2827,26 @@
     }
 
     function applyLogo(url) {
-      ['navLogoImg', 'authLogoImg'].forEach(id => { const el = document.getElementById(id); if (el) { if (url) { el.src = url; el.style.display = 'block' } else el.style.display = 'none' } });
+      // Nav
+      const navImg = document.getElementById('navLogoImg');
+      const navMark = document.getElementById('navLogoMark');
+      if (navImg && navMark) {
+        if (url) { navImg.src = url; navImg.style.display = 'block'; navMark.style.display = 'none'; }
+        else { navImg.style.display = 'none'; navMark.style.display = 'flex'; }
+      }
+      // Hero
+      const heroImg = document.getElementById('heroLogoImg');
+      const heroMark = document.getElementById('heroLogoMark');
+      if (heroImg && heroMark) {
+        if (url) { heroImg.src = url; heroImg.style.display = 'block'; heroMark.style.display = 'none'; }
+        else { heroImg.style.display = 'none'; heroMark.style.display = 'flex'; }
+      }
+      // Dashboard sidebar
       const sm = document.getElementById('dashLogoImg');
-      if (sm) { if (url) { sm.src = url; sm.style.display = 'block'; document.getElementById('dashAvBig').style.display = 'none' } else { sm.style.display = 'none'; document.getElementById('dashAvBig').style.display = 'flex' } }
+      if (sm) {
+        if (url) { sm.src = url; sm.style.display = 'block'; document.getElementById('dashAvBig').style.display = 'none'; }
+        else { sm.style.display = 'none'; document.getElementById('dashAvBig').style.display = 'flex'; }
+      }
     }
     window.doRegister = async function () {
       const name = document.getElementById('regName').value.trim();
@@ -2864,33 +2876,33 @@
       btn.disabled = true;
 
       try {
-  isRegistering = true; // ← debe ser lo PRIMERO dentro del try
+        isRegistering = true; // ← debe ser lo PRIMERO dentro del try
 
-  const cred = await createUserWithEmailAndPassword(auth, email, pass);
-  await sendEmailVerification(cred.user);
-  await setDoc(doc(db, 'mayoristas', cred.user.uid), {
-    name, phone, email,
-    verified: false,
-    createdAt: Date.now()
-  });
-  await signOut(auth);
-  showVerificationMessage(email);
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await sendEmailVerification(cred.user);
+        await setDoc(doc(db, 'mayoristas', cred.user.uid), {
+          name, phone, email,
+          verified: false,
+          createdAt: Date.now()
+        });
+        await signOut(auth);
+        showVerificationMessage(email);
 
-} catch (e) {
-  isRegistering = false; // ← también aquí en caso de error
-  if (e.code === 'auth/email-already-in-use') {
-    err('Este correo ya está registrado');
-  } else if (e.code === 'auth/invalid-email') {
-    err('El correo no es válido');
-  } else {
-    err('Error al crear cuenta. Intenta de nuevo');
-    console.error(e);
-  }
-} finally {
-  isRegistering = false; // ← y aquí al terminar
-  btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Crear cuenta';
-  btn.disabled = false;
-}
+      } catch (e) {
+        isRegistering = false; // ← también aquí en caso de error
+        if (e.code === 'auth/email-already-in-use') {
+          err('Este correo ya está registrado');
+        } else if (e.code === 'auth/invalid-email') {
+          err('El correo no es válido');
+        } else {
+          err('Error al crear cuenta. Intenta de nuevo');
+          console.error(e);
+        }
+      } finally {
+        isRegistering = false; // ← y aquí al terminar
+        btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Crear cuenta';
+        btn.disabled = false;
+      }
     }
 
     function showVerificationMessage(email) {
@@ -3009,93 +3021,47 @@
       showPage('pageStore');
     }
 
-
-    // onAuthStateChanged(auth, async user => {
-    //   // ✅ Si estamos en proceso de registro, ignorar completamente
-    //   if (isRegistering) return;
-    //   if (user) {
-
-    //     // ✅ Bloquear al admin: si es la cuenta admin, no lo dejes entrar al dashboard mayorista
-    //     if (user.email === 'admin@maesstore.com') {
-    //       // Si el admin inició sesión desde el formulario mayorista, cerramos sesión inmediatamente
-    //       if (document.getElementById('pageAuth').classList.contains('active')) {
-    //         await signOut(auth);
-    //         const errEl = document.getElementById('loginErr');
-    //         const errTxt = document.getElementById('loginErrTxt');
-    //         if (errEl && errTxt) {
-    //           errTxt.textContent = 'Esta cuenta no tiene acceso al portal mayoristas';
-    //           errEl.style.display = 'flex';
-    //         }
-    //       }
-    //       // Si el admin inició sesión desde el panel admin, dejarlo (adminLogged se maneja aparte)
-    //       return;
-    //     }
-
-    //     // ✅ Bloquear usuarios que no hayan verificado su correo
-    //     if (!user.emailVerified && !isRegistering) {
-    //       await signOut(auth);
-    //       // muestra mensaje de error en el login
-    //       return;
-    //     }
-
-    //     // ✅ Solo mayoristas normales llegan aquí
-    //     curUser = user;
-    //     try {
-    //       const s = await getDoc(doc(db, 'mayoristas', user.uid));
-    //       curData = s.exists() ? s.data() : { name: user.email, email: user.email, phone: '' }
-    //     }
-    //     catch { curData = { name: user.email, email: user.email, phone: '' } }
-
-    //     const n = curData.name || 'M';
-    //     ['dashName', 'dashNameBig'].forEach(id => document.getElementById(id).textContent = n);
-    //     ['dashAv', 'dashAvBig'].forEach(id => document.getElementById(id).textContent = n.charAt(0).toUpperCase());
-    //     await loadPedidos();
-    //     sec('inicio');
-    //     showPage('pageDash');
-    //   }
-    // });
-
     onAuthStateChanged(auth, async user => {
-  // ✅ Si estamos en proceso de registro, ignorar completamente
-  if (isRegistering) return;
+      // ✅ Si estamos en proceso de registro, ignorar completamente
+      if (isRegistering) return;
 
-  if (user) {
-    // ✅ Bloquear al admin
-    if (user.email === 'admin@maesstore.com') {
-      if (document.getElementById('pageAuth').classList.contains('active')) {
-        await signOut(auth);
-        const errEl = document.getElementById('loginErr');
-        const errTxt = document.getElementById('loginErrTxt');
-        if (errEl && errTxt) {
-          errTxt.textContent = 'Esta cuenta no tiene acceso al portal mayoristas';
-          errEl.style.display = 'flex';
+      if (user) {
+        // ✅ Bloquear al admin
+        if (user.email === 'admin@maesstore.com') {
+          if (document.getElementById('pageAuth').classList.contains('active')) {
+            await signOut(auth);
+            const errEl = document.getElementById('loginErr');
+            const errTxt = document.getElementById('loginErrTxt');
+            if (errEl && errTxt) {
+              errTxt.textContent = 'Esta cuenta no tiene acceso al portal mayoristas';
+              errEl.style.display = 'flex';
+            }
+          }
+          return;
         }
+
+        // ✅ Bloquear usuarios sin correo verificado
+        if (!user.emailVerified) {
+          await signOut(auth);
+          return;
+        }
+
+        // ✅ Solo mayoristas verificados llegan aquí
+        curUser = user;
+        try {
+          const s = await getDoc(doc(db, 'mayoristas', user.uid));
+          curData = s.exists() ? s.data() : { name: user.email, email: user.email, phone: '' }
+        }
+        catch { curData = { name: user.email, email: user.email, phone: '' } }
+
+        const n = curData.name || 'M';
+        ['dashName', 'dashNameBig'].forEach(id => document.getElementById(id).textContent = n);
+        ['dashAv', 'dashAvBig'].forEach(id => document.getElementById(id).textContent = n.charAt(0).toUpperCase());
+        await loadPedidos();
+        sec('inicio');
+        showPage('pageDash');
       }
-      return;
-    }
-
-    // ✅ Bloquear usuarios sin correo verificado
-    if (!user.emailVerified) {
-      await signOut(auth);
-      return;
-    }
-
-    // ✅ Solo mayoristas verificados llegan aquí
-    curUser = user;
-    try {
-      const s = await getDoc(doc(db, 'mayoristas', user.uid));
-      curData = s.exists() ? s.data() : { name: user.email, email: user.email, phone: '' }
-    }
-    catch { curData = { name: user.email, email: user.email, phone: '' } }
-
-    const n = curData.name || 'M';
-    ['dashName', 'dashNameBig'].forEach(id => document.getElementById(id).textContent = n);
-    ['dashAv', 'dashAvBig'].forEach(id => document.getElementById(id).textContent = n.charAt(0).toUpperCase());
-    await loadPedidos();
-    sec('inicio');
-    showPage('pageDash');
-  }
-});
+    });
 
     /* ===== PEDIDOS ===== */
     async function loadPedidos() {
@@ -3135,7 +3101,9 @@
 
       if (s === 'catalogo') {
         const allProds = products.length ? products : defaultProducts;
-        const cartTotal = mayCart.reduce((a, x) => a + x.price * x.qty, 0);
+        const cartTotal = mayCart.reduce((a, x) => a + (x.priceMay || x.price) * x.qty, 0);
+        const cartTotalNormal = mayCart.reduce((a, x) => a + x.price * x.qty, 0);
+        const ahorro = cartTotalNormal - cartTotal;
         const canSend = cartTotal >= MIN_MAYORISTA;
         const prodCards = allProds.map(p => `
       <div class="may-prod-card">
@@ -3144,6 +3112,14 @@
           <div class="may-prod-name">${p.name}</div>
           <div class="may-prod-desc">${p.desc || ''}</div>
           <div class="may-prod-price">${fmt(p.price)}</div>
+            ${p.priceMay ? `
+              <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px; padding:5px 10px;margin-bottom:.4rem;display:flex; align-items:center;gap:6px;font-size:12px">
+                <i class="fa-solid fa-store" style="color:#16a34a;font-size:11px"></i>
+                <span style="color:#166534;font-weight:600">Mayorista: ${fmt(p.priceMay)}</span>
+                <span style="background:#16a34a;color:#fff;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:600">
+                  -${Math.round((1 - p.priceMay / p.price) * 100)}%
+                </span>
+              </div>` : ''}
           <button class="may-add-btn" onclick="mayAddCart('${p.id}')"><i class="fa-solid fa-plus"></i> Agregar al pedido</button>
         </div>
       </div>`).join('');
@@ -3163,9 +3139,11 @@
         <div class="may-cart-head"><h4><i class="fa-solid fa-bag-shopping"></i> Mi Pedido Mayorista</h4><span style="font-size:12px;opacity:.85">${mayCart.reduce((a, x) => a + x.qty, 0)} producto(s)</span></div>
         <div class="may-cart-items" id="mayCartItems">${cartItems}</div>
         <div class="may-cart-foot">
-          <div class="may-total-row"><span>Total del pedido</span><span class="may-total-val" id="mayTotal">${fmt(cartTotal)}</span></div>
-          ${!canSend ? `<div class="may-min-warn"><i class="fa-solid fa-triangle-exclamation"></i> Mínimo de compra ${fmt(MIN_MAYORISTA)}. Te faltan ${fmt(MIN_MAYORISTA - cartTotal)}</div>` : ''}
-          <button class="may-send-btn" id="maySendBtn" onclick="maySendWA()" ${canSend ? '' : ' disabled'}><i class="fa-brands fa-whatsapp"></i> Enviar pedido por WhatsApp</button>
+          <div class="may-total-row"><span>Precio normal</span><span style="font-size:13px;color:var(--muted);text-decoration:line-through">${fmt(cartTotalNormal)}</span></div>
+            <div class="may-total-row"><span>Total mayorista</span><span class="may-total-val">${fmt(cartTotal)}</span></div>
+              ${ahorro > 0 ? `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:8px 12px;margin-bottom:.6rem;font-size:13px;color:#166534;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-piggy-bank"></i> Ahorras: <strong>${fmt(ahorro)}</strong></div>` : ''}
+              ${!canSend ? `<div class="may-min-warn"><i class="fa-solid fa-triangle-exclamation"></i> Mínimo ${fmt(MIN_MAYORISTA)}. Te faltan ${fmt(MIN_MAYORISTA - cartTotal)}</div>` : ''}
+              <button class="may-send-btn" onclick="maySendWA()" ${canSend ? '' : 'disabled'}><i class="fa-brands fa-whatsapp"></i> Enviar pedido por WhatsApp</button>
         </div>
       </div>
       <div class="dcard"><h3><i class="fa-solid fa-shop"></i> Catálogo · ${allProds.length} productos</h3><div class="product-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${prodCards}</div></div>`;
@@ -3228,20 +3206,20 @@
       if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
     }
 
-    /* ===== CARRITO MAYORISTA ===== */
     window.mayAddCart = function (id) {
       const p = (products.length ? products : defaultProducts).find(x => x.id === id); if (!p) return;
       const ex = mayCart.find(x => x.id === id);
-      if (ex) ex.qty++; else mayCart.push({ ...p, qty: 1 });
+      if (ex) ex.qty++;
+      else mayCart.push({ ...p, qty: 1, precioUso: p.priceMay || p.price });
       toast(`${p.name} agregado al pedido`); sec('catalogo');
     }
     window.mayChgQty = function (id, d) { const it = mayCart.find(x => x.id === id); if (!it) return; it.qty += d; if (it.qty <= 0) mayCart = mayCart.filter(x => x.id !== id); sec('catalogo') }
     window.mayRemCart = function (id) { mayCart = mayCart.filter(x => x.id !== id); sec('catalogo') }
     window.maySendWA = async function () {
-      const total = mayCart.reduce((a, c) => a + c.price * c.qty, 0);
+      const total = mayCart.reduce((a, c) => a + (c.priceMay || c.price) * c.qty, 0);
       if (total < MIN_MAYORISTA) return;
-      const items = mayCart.map(c => `• ${c.name} x${c.qty} = ${fmt(c.price * c.qty)}`).join('%0A');
-      const msg = `Hola%2C%20soy%20mayorista%20de%20Maes%20Store.%20Quiero%20hacer%20el%20siguiente%20pedido%3A%0A%0A${items}%0A%0ATotal%3A%20${fmt(total)}%0A%0ANombre%3A%20${encodeURIComponent(curData?.name || '')}`;
+      const items = mayCart.map(c => `• ${c.name} x${c.qty} = ${fmt((c.priceMay || c.price) * c.qty)}`).join('%0A');
+      const msg = `Hola%2C%20soy%20mayorista%20de%20Maes%20Store.%20Quiero%20hacer%20el%20siguiente%20pedido%3A%0A%0A${items}%0A%0ATotal%20mayorista%3A%20${fmt(total)}%0A%0ANombre%3A%20${encodeURIComponent(curData?.name || '')}`;
       await savePedido(mayCart, total);
       mayCart = [];
       window.open(`https://wa.me/573045298811?text=${msg}`, '_blank');
@@ -3406,6 +3384,7 @@
             .map(x => `<option${ep.cat === x ? ' selected' : ''}>${x}</option>`)
             .join('')}</select></div>
       <div class="fg"><label><i class="fa-solid fa-dollar-sign"></i> Precio COP *</label><input type="number" id="npr" value="${ep.price || ''}"></div>
+      <div class="fg"><label><i class="fa-solid fa-store"></i> Precio Mayorista COP</label><input type="number" id="npmay" value="${ep.priceMay || ''}"></div>
       <div class="fg"><label><i class="fa-solid fa-align-left"></i> Descripción</label><textarea id="nd" rows="2">${ep.desc || ''}</textarea></div>
       <div class="fg"><label><i class="fa-solid fa-fire"></i> Badge</label><input type="text" id="nb" value="${ep.badge || ''}"></div>
       <button class="btn-adm" id="saveBtn" onclick="${isE ? 'aSave()' : 'aAdd()'}"><i class="fa-solid fa-floppy-disk"></i> ${isE ? 'Guardar cambios' : 'Agregar producto'}</button>
@@ -3427,7 +3406,17 @@
       const btn = document.getElementById('saveBtn'); btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...'; btn.disabled = true;
       try {
         let img = ''; if (imgFile) { document.getElementById('upNote').style.display = 'block'; img = await upload(imgFile, `products/${Date.now()}_${imgFile.name}`); document.getElementById('upNote').style.display = 'none' }
-        await addDoc(collection(db, 'products'), { name: n, cat: document.getElementById('nc').value, price: pr, emoji: document.getElementById('ne').value || '💄', img, desc: document.getElementById('nd').value, badge: document.getElementById('nb').value, createdAt: Date.now() });
+        await addDoc(collection(db, 'products'), {
+          name: n,
+          cat: document.getElementById('nc').value,
+          price: pr,
+          priceMay: parseInt(document.getElementById('npmay').value) || 0,  // ← nuevo
+          emoji: document.getElementById('ne').value || '💄',
+          img,
+          desc: document.getElementById('nd').value,
+          badge: document.getElementById('nb').value,
+          createdAt: Date.now()
+        });
         imgFile = null; toast(`¡"${n}" agregado!`); aTab('prod')
       }
       catch (e) { toast('Error', 'err'); console.error(e) }
@@ -3441,23 +3430,32 @@
       const btn = document.getElementById('saveBtn'); btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...'; btn.disabled = true;
       try {
         let img = p.img || ''; if (imgFile) { document.getElementById('upNote').style.display = 'block'; img = await upload(imgFile, `products/${Date.now()}_${imgFile.name}`); document.getElementById('upNote').style.display = 'none' }
-        await updateDoc(doc(db, 'products', editId), { name: n, cat: document.getElementById('nc').value, price: pr, emoji: document.getElementById('ne').value || p.emoji, img, desc: document.getElementById('nd').value, badge: document.getElementById('nb').value });
+        await updateDoc(doc(db, 'products', editId), {
+          name: n,
+          cat: document.getElementById('nc').value,
+          price: pr,
+          priceMay: parseInt(document.getElementById('npmay').value) || 0,  // ← nuevo
+          emoji: document.getElementById('ne').value || p.emoji,
+          img,
+          desc: document.getElementById('nd').value,
+          badge: document.getElementById('nb').value
+        });
         editId = null; imgFile = null; toast('¡Actualizado!'); aTab('prod')
       }
       catch { toast('Error', 'err') }
       finally { const b = document.getElementById('saveBtn'); if (b) { b.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios'; b.disabled = false } }
     }
-   window.aDel = async function (id, name) {
-  if (!confirm(`¿Eliminar "${name}"?`)) return;
-  try {
-    await deleteDoc(doc(db, 'products', id));
-    products = products.filter(p => p.id !== id);
-    aTab('prod');
-    toast('Eliminado');
-  } catch {
-    toast('Error', 'err');
-  }
-}
+    window.aDel = async function (id, name) {
+      if (!confirm(`¿Eliminar "${name}"?`)) return;
+      try {
+        await deleteDoc(doc(db, 'products', id));
+        products = products.filter(p => p.id !== id);
+        aTab('prod');
+        toast('Eliminado');
+      } catch {
+        toast('Error', 'err');
+      }
+    }
     async function saveCats() { await setDoc(doc(db, 'settings', 'categories'), { list: categories.filter(x => x !== 'Todos') }) }
     window.aCatAdd = async function () { const v = document.getElementById('newCat').value.trim(); if (!v || categories.includes(v)) return alert('Inválida o ya existe'); categories.push(v); await saveCats(); toast(`"${v}" agregada`); aTab('cat') }
     window.aCatRm = async function (name) { if (!confirm(`¿Eliminar "${name}"?`)) return; categories = categories.filter(c => c !== name); await saveCats(); toast(`"${name}" eliminada`); aTab('cat') }
