@@ -2864,42 +2864,33 @@
       btn.disabled = true;
 
       try {
-        isRegistering = true;
-        // 1. Crear cuenta en Firebase Auth
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+  isRegistering = true; // ← debe ser lo PRIMERO dentro del try
 
-        // 2. Enviar correo de verificación
-        await sendEmailVerification(cred.user);
+  const cred = await createUserWithEmailAndPassword(auth, email, pass);
+  await sendEmailVerification(cred.user);
+  await setDoc(doc(db, 'mayoristas', cred.user.uid), {
+    name, phone, email,
+    verified: false,
+    createdAt: Date.now()
+  });
+  await signOut(auth);
+  showVerificationMessage(email);
 
-        // 3. Guardar datos en Firestore (con campo verified: false)
-        await setDoc(doc(db, 'mayoristas', cred.user.uid), {
-          name,
-          phone,
-          email,
-          verified: false,       // se actualizará cuando verifique el correo
-          createdAt: Date.now()
-        });
-
-        // 4. Cerrar sesión inmediatamente hasta que verifique
-        await signOut(auth);
-
-        // 5. Mostrar mensaje de éxito
-        showVerificationMessage(email);
-
-      } catch (e) {
-        if (e.code === 'auth/email-already-in-use') {
-          err('Este correo ya está registrado');
-        } else if (e.code === 'auth/invalid-email') {
-          err('El correo no es válido');
-        } else {
-          err('Error al crear cuenta. Intenta de nuevo');
-          console.error(e);
-        }
-      } finally {
-        isRegistering = false;
-        btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Crear cuenta';
-        btn.disabled = false;
-      }
+} catch (e) {
+  isRegistering = false; // ← también aquí en caso de error
+  if (e.code === 'auth/email-already-in-use') {
+    err('Este correo ya está registrado');
+  } else if (e.code === 'auth/invalid-email') {
+    err('El correo no es válido');
+  } else {
+    err('Error al crear cuenta. Intenta de nuevo');
+    console.error(e);
+  }
+} finally {
+  isRegistering = false; // ← y aquí al terminar
+  btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Crear cuenta';
+  btn.disabled = false;
+}
     }
 
     function showVerificationMessage(email) {
@@ -3019,48 +3010,92 @@
     }
 
 
+    // onAuthStateChanged(auth, async user => {
+    //   // ✅ Si estamos en proceso de registro, ignorar completamente
+    //   if (isRegistering) return;
+    //   if (user) {
+
+    //     // ✅ Bloquear al admin: si es la cuenta admin, no lo dejes entrar al dashboard mayorista
+    //     if (user.email === 'admin@maesstore.com') {
+    //       // Si el admin inició sesión desde el formulario mayorista, cerramos sesión inmediatamente
+    //       if (document.getElementById('pageAuth').classList.contains('active')) {
+    //         await signOut(auth);
+    //         const errEl = document.getElementById('loginErr');
+    //         const errTxt = document.getElementById('loginErrTxt');
+    //         if (errEl && errTxt) {
+    //           errTxt.textContent = 'Esta cuenta no tiene acceso al portal mayoristas';
+    //           errEl.style.display = 'flex';
+    //         }
+    //       }
+    //       // Si el admin inició sesión desde el panel admin, dejarlo (adminLogged se maneja aparte)
+    //       return;
+    //     }
+
+    //     // ✅ Bloquear usuarios que no hayan verificado su correo
+    //     if (!user.emailVerified && !isRegistering) {
+    //       await signOut(auth);
+    //       // muestra mensaje de error en el login
+    //       return;
+    //     }
+
+    //     // ✅ Solo mayoristas normales llegan aquí
+    //     curUser = user;
+    //     try {
+    //       const s = await getDoc(doc(db, 'mayoristas', user.uid));
+    //       curData = s.exists() ? s.data() : { name: user.email, email: user.email, phone: '' }
+    //     }
+    //     catch { curData = { name: user.email, email: user.email, phone: '' } }
+
+    //     const n = curData.name || 'M';
+    //     ['dashName', 'dashNameBig'].forEach(id => document.getElementById(id).textContent = n);
+    //     ['dashAv', 'dashAvBig'].forEach(id => document.getElementById(id).textContent = n.charAt(0).toUpperCase());
+    //     await loadPedidos();
+    //     sec('inicio');
+    //     showPage('pageDash');
+    //   }
+    // });
+
     onAuthStateChanged(auth, async user => {
-      if (user) {
+  // ✅ Si estamos en proceso de registro, ignorar completamente
+  if (isRegistering) return;
 
-        // ✅ Bloquear al admin: si es la cuenta admin, no lo dejes entrar al dashboard mayorista
-        if (user.email === 'admin@maesstore.com') {
-          // Si el admin inició sesión desde el formulario mayorista, cerramos sesión inmediatamente
-          if (document.getElementById('pageAuth').classList.contains('active')) {
-            await signOut(auth);
-            const errEl = document.getElementById('loginErr');
-            const errTxt = document.getElementById('loginErrTxt');
-            if (errEl && errTxt) {
-              errTxt.textContent = 'Esta cuenta no tiene acceso al portal mayoristas';
-              errEl.style.display = 'flex';
-            }
-          }
-          // Si el admin inició sesión desde el panel admin, dejarlo (adminLogged se maneja aparte)
-          return;
+  if (user) {
+    // ✅ Bloquear al admin
+    if (user.email === 'admin@maesstore.com') {
+      if (document.getElementById('pageAuth').classList.contains('active')) {
+        await signOut(auth);
+        const errEl = document.getElementById('loginErr');
+        const errTxt = document.getElementById('loginErrTxt');
+        if (errEl && errTxt) {
+          errTxt.textContent = 'Esta cuenta no tiene acceso al portal mayoristas';
+          errEl.style.display = 'flex';
         }
-
-        // ✅ Bloquear usuarios que no hayan verificado su correo
-        if (!user.emailVerified && !isRegistering) {
-          await signOut(auth);
-          // muestra mensaje de error en el login
-          return;
-        }
-
-        // ✅ Solo mayoristas normales llegan aquí
-        curUser = user;
-        try {
-          const s = await getDoc(doc(db, 'mayoristas', user.uid));
-          curData = s.exists() ? s.data() : { name: user.email, email: user.email, phone: '' }
-        }
-        catch { curData = { name: user.email, email: user.email, phone: '' } }
-
-        const n = curData.name || 'M';
-        ['dashName', 'dashNameBig'].forEach(id => document.getElementById(id).textContent = n);
-        ['dashAv', 'dashAvBig'].forEach(id => document.getElementById(id).textContent = n.charAt(0).toUpperCase());
-        await loadPedidos();
-        sec('inicio');
-        showPage('pageDash');
       }
-    });
+      return;
+    }
+
+    // ✅ Bloquear usuarios sin correo verificado
+    if (!user.emailVerified) {
+      await signOut(auth);
+      return;
+    }
+
+    // ✅ Solo mayoristas verificados llegan aquí
+    curUser = user;
+    try {
+      const s = await getDoc(doc(db, 'mayoristas', user.uid));
+      curData = s.exists() ? s.data() : { name: user.email, email: user.email, phone: '' }
+    }
+    catch { curData = { name: user.email, email: user.email, phone: '' } }
+
+    const n = curData.name || 'M';
+    ['dashName', 'dashNameBig'].forEach(id => document.getElementById(id).textContent = n);
+    ['dashAv', 'dashAvBig'].forEach(id => document.getElementById(id).textContent = n.charAt(0).toUpperCase());
+    await loadPedidos();
+    sec('inicio');
+    showPage('pageDash');
+  }
+});
 
     /* ===== PEDIDOS ===== */
     async function loadPedidos() {
